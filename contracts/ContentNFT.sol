@@ -5,53 +5,52 @@ pragma solidity ^0.8.12;
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
-import "./extensions/ERC721DynamicOwnershipUpgradeable.sol";
-import "./interfaces/ILumos.sol";
+import "./extensions/ERC721EnumerableUpgradeable.sol";
+import "./interfaces/IController.sol";
 
-contract ContentNFT is PausableUpgradeable, ERC721DynamicOwnershipUpgradeable {
-    event ContentNFTTransfer(
-        uint256 fromProfileId,
-        uint256 toProfileId,
-        uint256 tokenId
-    );
-
+contract ContentNFT is PausableUpgradeable, ERC721EnumerableUpgradeable {
     uint256 private _nonce;
-    mapping(uint256 => string) private _contentURIs;
+    mapping(uint256 => string) private _uris;
 
-    address public lumos;
+    address public controller;
+
+    modifier onlyController() {
+        require(msg.sender == controller, "ContentNFT: only controller");
+        _;
+    }
 
     function initialize(
         string calldata _name,
         string calldata _symbol,
-        address _lumos
+        address _controller
     ) external initializer {
         require(
-            _lumos != address(0),
-            "ContentNFT: initialize lumos with zero address"
+            _controller != address(0),
+            "ContentNFT: initialize _controller with zero address"
         );
-        ERC721DynamicOwnershipUpgradeable.__ERC721_init(_name, _symbol);
+        ERC721Upgradeable.__ERC721_init(_name, _symbol);
         PausableUpgradeable.__Pausable_init();
-        lumos = _lumos;
+        controller = _controller;
     }
 
-    function reinterpret(address owner)
+    function getOwnerId(address owner)
         internal
         view
         virtual
         override
         returns (uint256)
     {
-        return ILumos(lumos).profileNFT().profileOf(owner);
+        return IController(controller).getProfileId(owner);
     }
 
-    function reinterpret(uint256 profileId)
+    function getOwner(uint256 ownerId)
         internal
         view
         virtual
         override
         returns (address)
     {
-        return ILumos(lumos).profileNFT().ownerOf(profileId);
+        return IController(controller).getProfileOwner(ownerId);
     }
 
     function tokenURI(uint256 tokenId)
@@ -60,18 +59,18 @@ contract ContentNFT is PausableUpgradeable, ERC721DynamicOwnershipUpgradeable {
         override
         returns (string memory)
     {
-        require(_exists(tokenId), "ContentNFT: tokenId not exists");
-        return _contentURIs[tokenId];
+        require(_exists(tokenId), "ContentNFT: tokenId dose not exists");
+        return _uris[tokenId];
     }
 
-    function mint(address to, string memory contentURI)
+    function mint(address to, string memory uri)
         external
+        onlyController
         returns (uint256)
     {
-        require(msg.sender == lumos, "ContentNFT: not lumos");
         uint256 tokenId = ++_nonce;
         _mint(to, tokenId);
-        _contentURIs[tokenId] = contentURI;
+        _uris[tokenId] = uri;
         return tokenId;
     }
 
@@ -80,8 +79,7 @@ contract ContentNFT is PausableUpgradeable, ERC721DynamicOwnershipUpgradeable {
         address to,
         uint256 tokenId
     ) internal override whenNotPaused {
-        ILumos(lumos).onNFTTransfer(from, to, tokenId);
-        emit ContentNFTTransfer(reinterpret(from), reinterpret(to), tokenId);
         super._beforeTokenTransfer(from, to, tokenId);
+        IController(controller).onNFTTransfer(from, to, tokenId);
     }
 }

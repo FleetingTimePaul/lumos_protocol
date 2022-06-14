@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.12;
 
-interface IContentNFT {
-    function mint(address to, string calldata contentIdURI) external returns (uint256);
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721EnumerableUpgradeable.sol";
+
+interface IContentNFT is IERC721EnumerableUpgradeable {
+    function mint(address to, string calldata uri) external returns (uint256);
 }

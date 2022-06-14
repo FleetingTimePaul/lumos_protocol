@@ -13,96 +13,29 @@ async function main() {
     var FollowNFT = await ethers.getContractFactory("FollowNFT");
     var ProfileNFT = await ethers.getContractFactory("ProfileNFT");
     var ContentNFT = await ethers.getContractFactory("ContentNFT");
-    var Lumos = await ethers.getContractFactory("Lumos");
-    var Factory = await ethers.getContractFactory("Factory");
+    var Controller = await ethers.getContractFactory("Controller");
 
     const [deployer] = await ethers.getSigners();
     console.log("Deploying contracts with the account:", deployer.address);
 
-    var followNFTImpl = await FollowNFT.deploy();
-    await followNFTImpl.deployed();
-    console.log("deploy followNFTImpl at: ", followNFTImpl.address);
 
-    var profileNFTImpl = await ProfileNFT.deploy();
-    await profileNFTImpl.deployed();
-    console.log("deploy profileNFTImpl at: ", profileNFTImpl.address);
+    var controller = await upgrades.deployProxy(Controller, [], { initializer: false });
+    await controller.deployed();
+    console.log("deploy controller at: ", controller.address);
 
-    var contentNFTImpl = await ContentNFT.deploy();
-    await contentNFTImpl.deployed();
-    console.log("deploy contentNFTImpl at: ", contentNFTImpl.address);
+    var followNFTBeacon = await upgrades.deployBeacon(FollowNFT);
+    await followNFTBeacon.deployed();
+    console.log("deploy followNFTBeacon at: ", followNFTBeacon.address);
 
-    var lumos = await upgrades.deployProxy(Lumos, [], { initializer: false });
-    await lumos.deployed();
-    console.log("deploy lumos at: ", lumos.address);
-    var factory = await upgrades.deployProxy(Factory, [
-        deployer.address,
-        lumos.address,
-        followNFTImpl.address,
-        contentNFTImpl.address,
-        profileNFTImpl.address,
-    ]);
+    var profileNFT = await upgrades.deployProxy(ProfileNFT, ["Profile NFT", "ProfileNFT", controller.address]);
+    await profileNFT.deployed();
+    console.log("deploy profileNFT at: ", profileNFT.address);
 
-    await factory.deployed();
-    console.log("deploy factory at: ", factory.address);
+    var contentNFT = await upgrades.deployProxy(ContentNFT, ["Content NFT", "ContentNFT", controller.address]);
+    await contentNFT.deployed();
+    console.log("deploy contentNFT at: ", contentNFT.address);
 
-    var contentNFTInitializeData = web3.eth.abi.encodeFunctionCall(
-        {
-            inputs: [
-                {
-                    internalType: "string",
-                    name: "_name",
-                    type: "string",
-                },
-                {
-                    internalType: "string",
-                    name: "_symbol",
-                    type: "string",
-                },
-                {
-                    internalType: "address",
-                    name: "_lumos",
-                    type: "address",
-                },
-            ],
-            name: "initialize",
-            outputs: [],
-            stateMutability: "nonpayable",
-            type: "function",
-        },
-        ["Lumos Content NFT", "LCN", lumos.address]
-    );
-    var profileNFTInitializeData = web3.eth.abi.encodeFunctionCall(
-        {
-            inputs: [
-                {
-                    internalType: "string",
-                    name: "_name",
-                    type: "string",
-                },
-                {
-                    internalType: "string",
-                    name: "_symbol",
-                    type: "string",
-                },
-                {
-                    internalType: "address",
-                    name: "_lumos",
-                    type: "address",
-                },
-            ],
-            name: "initialize",
-            outputs: [],
-            stateMutability: "nonpayable",
-            type: "function",
-        },
-        ["Lumos Profile NFT", "LPN", lumos.address]
-    );
-    await lumos.initialize(
-        deployer.address,
-        factory.address,
-        profileNFTInitializeData,
-        contentNFTInitializeData
-    );
+    await controller.initialize(deployer.address, profileNFT.address, contentNFT.address, followNFTBeacon.address);
 }
 
 main();

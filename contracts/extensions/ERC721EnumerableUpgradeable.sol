@@ -3,14 +3,14 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721EnumerableUpgradeable.sol";
-import "./ERC721DynamicOwnershipUpgradeable.sol";
+import "./ERC721Upgradeable.sol";
 
 /**
  * @dev This implements an optional extension of {ERC721} defined in the EIP that adds
  * enumerability of all the token ids in the contract as well as all token ids owned by each
  * account.
  */
-abstract contract ERC721DynamicOwnershipEnumerableUpgradeable is Initializable, ERC721DynamicOwnershipUpgradeable, IERC721EnumerableUpgradeable {
+abstract contract ERC721EnumerableUpgradeable is Initializable, ERC721Upgradeable, IERC721EnumerableUpgradeable {
     function __ERC721Enumerable_init() internal initializer {
         __Context_init_unchained();
         __ERC165_init_unchained();
@@ -19,8 +19,8 @@ abstract contract ERC721DynamicOwnershipEnumerableUpgradeable is Initializable, 
 
     function __ERC721Enumerable_init_unchained() internal initializer {
     }
-    // Mapping from owner to list of owned token IDs
-    mapping(address => mapping(uint256 => uint256)) private _ownedTokens;
+    // Mapping from owner Id to list of owned token IDs
+    mapping(uint256 => mapping(uint256 => uint256)) private _ownedTokens;
 
     // Mapping from token ID to index of the owner tokens list
     mapping(uint256 => uint256) private _ownedTokensIndex;
@@ -34,7 +34,7 @@ abstract contract ERC721DynamicOwnershipEnumerableUpgradeable is Initializable, 
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165Upgradeable, ERC721DynamicOwnershipUpgradeable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165Upgradeable, ERC721Upgradeable) returns (bool) {
         return interfaceId == type(IERC721EnumerableUpgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
 
@@ -42,8 +42,8 @@ abstract contract ERC721DynamicOwnershipEnumerableUpgradeable is Initializable, 
      * @dev See {IERC721Enumerable-tokenOfOwnerByIndex}.
      */
     function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual override returns (uint256) {
-        require(index < ERC721DynamicOwnershipUpgradeable.balanceOf(owner), "ERC721Enumerable: owner index out of bounds");
-        return _ownedTokens[owner][index];
+        require(index < ERC721Upgradeable.balanceOf(owner), "ERC721Enumerable: owner index out of bounds");
+        return _ownedTokens[getOwnerId(owner)][index];
     }
 
     /**
@@ -57,7 +57,7 @@ abstract contract ERC721DynamicOwnershipEnumerableUpgradeable is Initializable, 
      * @dev See {IERC721Enumerable-tokenByIndex}.
      */
     function tokenByIndex(uint256 index) public view virtual override returns (uint256) {
-        require(index < ERC721DynamicOwnershipEnumerableUpgradeable.totalSupply(), "ERC721Enumerable: global index out of bounds");
+        require(index < ERC721EnumerableUpgradeable.totalSupply(), "ERC721Enumerable: global index out of bounds");
         return _allTokens[index];
     }
 
@@ -101,8 +101,8 @@ abstract contract ERC721DynamicOwnershipEnumerableUpgradeable is Initializable, 
      * @param tokenId uint256 ID of the token to be added to the tokens list of the given address
      */
     function _addTokenToOwnerEnumeration(address to, uint256 tokenId) private {
-        uint256 length = ERC721DynamicOwnershipUpgradeable.balanceOf(to);
-        _ownedTokens[to][length] = tokenId;
+        uint256 length = ERC721Upgradeable.balanceOf(to);
+        _ownedTokens[getOwnerId(to)][length] = tokenId;
         _ownedTokensIndex[tokenId] = length;
     }
 
@@ -127,20 +127,21 @@ abstract contract ERC721DynamicOwnershipEnumerableUpgradeable is Initializable, 
         // To prevent a gap in from's tokens array, we store the last token in the index of the token to delete, and
         // then delete the last slot (swap and pop).
 
-        uint256 lastTokenIndex = ERC721DynamicOwnershipUpgradeable.balanceOf(from) - 1;
+        uint256 lastTokenIndex = ERC721Upgradeable.balanceOf(from) - 1;
         uint256 tokenIndex = _ownedTokensIndex[tokenId];
 
+        uint256 fromOwnerId = getOwnerId(from);
         // When the token to delete is the last token, the swap operation is unnecessary
         if (tokenIndex != lastTokenIndex) {
-            uint256 lastTokenId = _ownedTokens[from][lastTokenIndex];
+            uint256 lastTokenId = _ownedTokens[fromOwnerId][lastTokenIndex];
 
-            _ownedTokens[from][tokenIndex] = lastTokenId; // Move the last token to the slot of the to-delete token
+            _ownedTokens[fromOwnerId][tokenIndex] = lastTokenId; // Move the last token to the slot of the to-delete token
             _ownedTokensIndex[lastTokenId] = tokenIndex; // Update the moved token's index
         }
 
         // This also deletes the contents at the last position of the array
         delete _ownedTokensIndex[tokenId];
-        delete _ownedTokens[from][lastTokenIndex];
+        delete _ownedTokens[fromOwnerId][lastTokenIndex];
     }
 
     /**

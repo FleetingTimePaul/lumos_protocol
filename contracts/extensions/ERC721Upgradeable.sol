@@ -16,7 +16,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
  * the Metadata extension, but not including the Enumerable extension, which is available separately as
  * {ERC721Enumerable}.
  */
-abstract contract ERC721DynamicOwnershipUpgradeable is Initializable, ContextUpgradeable, ERC165Upgradeable, IERC721Upgradeable, IERC721MetadataUpgradeable {
+abstract contract ERC721Upgradeable is Initializable, ContextUpgradeable, ERC165Upgradeable, IERC721Upgradeable, IERC721MetadataUpgradeable {
     using AddressUpgradeable for address;
     using StringsUpgradeable for uint256;
 
@@ -26,10 +26,10 @@ abstract contract ERC721DynamicOwnershipUpgradeable is Initializable, ContextUpg
     // Token symbol
     string private _symbol;
 
-    // Mapping from token ID to owner profileNFT ID
+    // Mapping from token ID to owner ID
     mapping(uint256 => uint256) private _owners;
 
-    // Mapping owner profileNFT ID to token count
+    // Mapping owner ID to token count
     mapping(uint256 => uint256) private _balances;
 
     // Mapping from token ID to approved address
@@ -52,6 +52,9 @@ abstract contract ERC721DynamicOwnershipUpgradeable is Initializable, ContextUpg
         _symbol = symbol_;
     }
 
+    function getOwnerId(address owner) internal virtual view returns(uint256);
+    function getOwner(uint256 ownerId) internal virtual view returns(address);
+
     /**
      * @dev See {IERC165-supportsInterface}.
      */
@@ -62,22 +65,19 @@ abstract contract ERC721DynamicOwnershipUpgradeable is Initializable, ContextUpg
             super.supportsInterface(interfaceId);
     }
 
-    function reinterpret(address owner) internal virtual view returns(uint256);
-    function reinterpret(uint256 id) internal virtual view returns(address);
-
     /**
      * @dev See {IERC721-balanceOf}.
      */
     function balanceOf(address owner) public view virtual override returns (uint256) {
         require(owner != address(0), "ERC721: balance query for the zero address");
-        return _balances[reinterpret(owner)];
+        return _balances[getOwnerId(owner)];
     }
 
     /**
      * @dev See {IERC721-ownerOf}.
      */
     function ownerOf(uint256 tokenId) public view virtual override returns (address) {
-        address owner = reinterpret(_owners[tokenId]);
+        address owner = getOwner(_owners[tokenId]);
         require(owner != address(0), "ERC721: owner query for nonexistent token");
         return owner;
     }
@@ -119,7 +119,7 @@ abstract contract ERC721DynamicOwnershipUpgradeable is Initializable, ContextUpg
      * @dev See {IERC721-approve}.
      */
     function approve(address to, uint256 tokenId) public virtual override {
-        address owner = ERC721DynamicOwnershipUpgradeable.ownerOf(tokenId);
+        address owner = ERC721Upgradeable.ownerOf(tokenId);
         require(to != owner, "ERC721: approval to current owner");
 
         require(
@@ -243,7 +243,7 @@ abstract contract ERC721DynamicOwnershipUpgradeable is Initializable, ContextUpg
      */
     function _isApprovedOrOwner(address spender, uint256 tokenId) internal view virtual returns (bool) {
         require(_exists(tokenId), "ERC721: operator query for nonexistent token");
-        address owner = ERC721DynamicOwnershipUpgradeable.ownerOf(tokenId);
+        address owner = ERC721Upgradeable.ownerOf(tokenId);
         return (spender == owner || getApproved(tokenId) == spender || isApprovedForAll(owner, spender));
     }
 
@@ -295,7 +295,7 @@ abstract contract ERC721DynamicOwnershipUpgradeable is Initializable, ContextUpg
 
         _beforeTokenTransfer(address(0), to, tokenId);
         
-        uint256 _to = reinterpret(to);
+        uint256 _to = getOwnerId(to);
         require(_to != 0, "ERC721: mint to address that is reinterpreted zero");
 
         _balances[_to] += 1;
@@ -315,7 +315,7 @@ abstract contract ERC721DynamicOwnershipUpgradeable is Initializable, ContextUpg
      * Emits a {Transfer} event.
      */
     function _burn(uint256 tokenId) internal virtual {
-        address owner = ERC721DynamicOwnershipUpgradeable.ownerOf(tokenId);
+        address owner = ERC721Upgradeable.ownerOf(tokenId);
 
         _beforeTokenTransfer(owner, address(0), tokenId);
 
@@ -343,19 +343,19 @@ abstract contract ERC721DynamicOwnershipUpgradeable is Initializable, ContextUpg
         address to,
         uint256 tokenId
     ) internal virtual {
-        require(ERC721DynamicOwnershipUpgradeable.ownerOf(tokenId) == from, "ERC721: transfer of token that is not own");
+        require(ERC721Upgradeable.ownerOf(tokenId) == from, "ERC721: transfer of token that is not own");
         require(to != address(0), "ERC721: transfer to the zero address");
 
-        uint256 _from = reinterpret(from);
-        require(_from != 0, "ERC721: transfer from address that is reinterpreted zero");
+        uint256 _from = getOwnerId(from);
+        require(_from != 0, "ERC721: transfer from address that is zero profile");
 
         _beforeTokenTransfer(from, to, tokenId);
 
         // Clear approvals from the previous owner
         _approve(address(0), tokenId);
 
-        uint256 _to = reinterpret(to);
-        require(_to != 0, "ERC721: transfer to address that is reinterpreted zero");
+        uint256 _to = getOwnerId(to);
+        require(_to != 0, "ERC721: transfer to address that is zero profile");
 
         _balances[_from] -= 1;
         _balances[_to] += 1;
@@ -371,7 +371,7 @@ abstract contract ERC721DynamicOwnershipUpgradeable is Initializable, ContextUpg
      */
     function _approve(address to, uint256 tokenId) internal virtual {
         _tokenApprovals[tokenId] = to;
-        emit Approval(ERC721DynamicOwnershipUpgradeable.ownerOf(tokenId), to, tokenId);
+        emit Approval(ERC721Upgradeable.ownerOf(tokenId), to, tokenId);
     }
 
     /**

@@ -5,65 +5,67 @@ pragma solidity ^0.8.10;
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 
-import "./extensions/ERC721DynamicOwnershipUpgradeable.sol";
-import "./interfaces/ILumos.sol";
+import "./extensions/ERC721EnumerableUpgradeable.sol";
+import "./interfaces/IController.sol";
 
-contract ProfileNFT is ERC721DynamicOwnershipUpgradeable, PausableUpgradeable {
-    event SetTokenURI(uint256 tokenId, string profileMetadataURI);
-
+contract ProfileNFT is PausableUpgradeable, ERC721EnumerableUpgradeable {
     uint256 private _nonce;
+    mapping(uint256 => string) private _uris; //profileId => uris
     mapping(uint256 => address) private _owners; //profileId => owner
     mapping(address => uint256) private _profiles; //owner => profileId
-    mapping(uint256 => string) private _profileMetadataURIs; //profileId => profileMetadataURI
+    address public controller;
 
-    address public lumos;
+    modifier onlyController() {
+        require(msg.sender == controller, "ProfileNFT: only controller");
+        _;
+    }
 
     function initialize(
         string calldata _name,
         string calldata _symbol,
-        address _lumos
+        address _controller
     ) external initializer {
         require(
-            _lumos != address(0),
-            "ProfileNFT: initialize _lumos with zero address"
+            _controller != address(0),
+            "ProfileNFT: initialize _controller with zero address"
         );
-        ERC721DynamicOwnershipUpgradeable.__ERC721_init(_name, _symbol);
+        ERC721Upgradeable.__ERC721_init(_name, _symbol);
         PausableUpgradeable.__Pausable_init();
-        lumos = _lumos;
+        controller = _controller;
     }
 
-    function profileOf(address owner) public view returns (uint256) {
-        return _profiles[owner];
-    }
-
-    function reinterpret(address owner)
+    function getOwnerId(address owner)
         internal
         view
         virtual
         override
         returns (uint256)
     {
-        return profileOf(owner);
+        return _profiles[owner];
     }
 
-    function reinterpret(uint256 profileId)
+    function getOwner(uint256 ownerId)
         internal
         view
         virtual
         override
         returns (address)
     {
-        return _owners[profileId];
+        return _owners[ownerId];
     }
 
-    function mint(address to, string calldata profileMetadataURI)
+    function profileOf(address owner) external view returns (uint256) {
+        return _profiles[owner];
+    }
+
+    function mint(address to, string calldata uri)
         external
+        onlyController
         returns (uint256)
     {
-        require(msg.sender == lumos, "ProfileNFT: only lumos");
         uint256 tokenId = ++_nonce;
         _mint(to, tokenId);
-        _profileMetadataURIs[tokenId] = profileMetadataURI;
+        _uris[tokenId] = uri;
         return tokenId;
     }
 
@@ -73,15 +75,14 @@ contract ProfileNFT is ERC721DynamicOwnershipUpgradeable, PausableUpgradeable {
         override
         returns (string memory)
     {
-        return _profileMetadataURIs[tokenId];
+        return _uris[tokenId];
     }
 
-    function setTokenURI(uint256 tokenId, string calldata profileMetadataURI)
+    function setTokenURI(uint256 tokenId, string calldata uri)
         external
+        onlyController
     {
-        require(msg.sender == lumos, "ProfileNFT: only lumos");
-        _profileMetadataURIs[tokenId] = profileMetadataURI;
-        emit SetTokenURI(tokenId, profileMetadataURI);
+        _uris[tokenId] = uri;
     }
 
     function _beforeTokenTransfer(
@@ -89,16 +90,18 @@ contract ProfileNFT is ERC721DynamicOwnershipUpgradeable, PausableUpgradeable {
         address to,
         uint256 tokenId
     ) internal override whenNotPaused {
-        require(balanceOf(to) == 0, "ProfileNFT: transfer to address already has a profileID");
-        if(from == address(0)) { //mint
+        super._beforeTokenTransfer(from, to, tokenId);
+        require(balanceOf(to) == 0, "ProfileNFT: transfer to has a profile");
+        //mint
+        if (from == address(0)) {
             _owners[tokenId] = to;
             _profiles[to] = tokenId;
         } else {
-             uint256 profileId = profileOf(from);
+            uint256 profileId = _profiles[from];
             _owners[profileId] = to;
             _profiles[to] = profileId;
             delete _profiles[from];
         }
-        super._beforeTokenTransfer(from, to, tokenId);
+        IController(controller).onNFTTransfer(from, to, tokenId);
     }
 }
