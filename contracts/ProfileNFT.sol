@@ -90,8 +90,9 @@ contract ProfileNFT is PausableUpgradeable, ERC721EnumerableUpgradeable {
         address to,
         uint256 tokenId
     ) internal override whenNotPaused {
-        super._beforeTokenTransfer(from, to, tokenId);
         require(balanceOf(to) == 0, "ProfileNFT: transfer to has a profile");
+        super._beforeTokenTransfer(from, to, tokenId);
+        IController(controller).onNFTTransfer(from, to, tokenId);
         //mint
         if (from == address(0)) {
             _owners[tokenId] = to;
@@ -102,6 +103,5 @@ contract ProfileNFT is PausableUpgradeable, ERC721EnumerableUpgradeable {
             _profiles[to] = profileId;
             delete _profiles[from];
         }
-        IController(controller).onNFTTransfer(from, to, tokenId);
     }
 }

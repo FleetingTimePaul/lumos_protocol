@@ -79,7 +79,7 @@ contract ContentNFT is PausableUpgradeable, ERC721EnumerableUpgradeable {
         address to,
         uint256 tokenId
     ) internal override whenNotPaused {
-        super._beforeTokenTransfer(from, to, tokenId);
         IController(controller).onNFTTransfer(from, to, tokenId);
+        super._beforeTokenTransfer(from, to, tokenId);
     }
 }

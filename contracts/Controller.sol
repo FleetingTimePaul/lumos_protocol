@@ -41,7 +41,9 @@ contract Controller is
     event OnNFTTransfer(
         address nftAddress,
         address from,
+        uint256 fromProfileId,
         address to,
+        uint256 toProfileId,
         uint256 tokenId
     );
 
@@ -50,8 +52,9 @@ contract Controller is
     address private _contentNFT;
     mapping(uint256 => address) private _followNFTs; // profileId => followNFT
     mapping(address => uint256) private _followNFTOwners; // followNFT => profileId
-    mapping(uint256 => mapping(uint256 => uint256)) private _indexedFollowees; //follower profileId => index => followee profileId
-    mapping(uint256 => uint256) private _numberFollowees; //profileId => number of followees
+    // mapping(uint256 => mapping(uint256 => uint256)) private _indexedFollowees; //follower profileId => index => followee profileId
+    // mapping(uint256 => mapping(uint256 => uint256)) private _followeesIndex; //follower profileId  => followee profileId => index
+    // mapping(uint256 => uint256) private _numberFollowees; //profileId => number of followees
     mapping(uint256 => mapping(uint256 => uint256)) private _indexedContents; //profileId => index => Content NFT Tokens
     mapping(uint256 => uint256) private _numberContents; // profileId => number of ContentNFT Tokens
 
@@ -136,9 +139,6 @@ contract Controller is
                 "Controller: already following"
             );
             uint256 tokenId = IFollowNFT(followNFT).mint(msg.sender);
-            _indexedFollowees[profileId][
-                _numberFollowees[profileId]++
-            ] = followee;
             emit Follow(msg.sender, profileId, followee, followNFT, tokenId);
         }
     }
@@ -162,9 +162,6 @@ contract Controller is
                 0
             );
             IFollowNFT(followNFT).burn(msg.sender, tokenId);
-            _indexedFollowees[profileId][
-                --_numberFollowees[profileId]
-            ] = followee;
             emit Unfollow(msg.sender, profileId, followee, followNFT, tokenId);
         }
     }
@@ -177,18 +174,18 @@ contract Controller is
         return _numberContents[profileId];
     }
 
-    function getFollowees(uint256 follower)
-        external
-        view
-        returns (uint256[] memory)
-    {
-        uint256 number = _numberFollowees[follower];
-        uint256[] memory tokenIds = new uint256[](number);
-        for (uint256 i = 0; i < number; ++i) {
-            tokenIds[i] = _indexedFollowees[follower][i];
-        }
-        return tokenIds;
-    }
+    // function getFollowees(uint256 follower)
+    //     external
+    //     view
+    //     returns (uint256[] memory)
+    // {
+    //     uint256 number = _numberFollowees[follower];
+    //     uint256[] memory tokenIds = new uint256[](number);
+    //     for (uint256 i = 0; i < number; ++i) {
+    //         tokenIds[i] = _indexedFollowees[follower][i];
+    //     }
+    //     return tokenIds;
+    // }
 
     function getContents(uint256 profileId)
         public
@@ -244,7 +241,14 @@ contract Controller is
                 emit Create(to, profileId, "");
             }
         }
-        emit OnNFTTransfer(msg.sender, from, to, tokenId);
+        emit OnNFTTransfer(
+            msg.sender,
+            from,
+            IProfileNFT(_profileNFT).profileOf(from),
+            to,
+            IProfileNFT(_profileNFT).profileOf(to),
+            tokenId
+        );
     }
 
     function setFollowNFTURI(string calldata uri) external {

@@ -1,30 +1,30 @@
 {
   "manifestVersion": "3.2",
   "admin": {
-    "address": "0x12029AC82Cb26cB8dBBE25a38662C8241d11c8D1",
-    "txHash": "0x58d765fd9f4522e29cede16dd18368926c5adc4da1eec23dc3d896fc6a59879b"
+    "address": "0xc9EA9085C72E2cfa04705fd1A270072358B877c8",
+    "txHash": "0x73c46d9ad1241a081d2b41403bfb6547096690a2447665ce14b688dfdde00962"
   },
   "proxies": [
     {
-      "address": "0xdE6a721fDBc9e4beEDa4D9f67A13Cda72CdAe962",
-      "txHash": "0x2ee857490f7f810f7a4321199ca7632a4171f72c358019ba8d994a47cc01cee9",
+      "address": "0x5af7339E3c7429c2081a2e1ad60f26e06f3A4e13",
+      "txHash": "0x7d337bbdf7d0fa556cde97c1040e56693ca58e76c02bbfcdc26b6a0a0ba11eed",
       "kind": "transparent"
     },
     {
-      "address": "0x22E4E480Fd53E6Cd7A2D9B570775962684f58B3D",
-      "txHash": "0xe3c40a10e4f6a31fb0feee2c0d55c20c0c66cc0a42325d8733c3b82826912a8e",
+      "address": "0xbaf879f5Dd47A9ac274E175b3a9092178b12985D",
+      "txHash": "0x7b984b36d35f445440a8d4e4abe99ddb3e4b139936fc1f96fb91eb1e36a79aaf",
       "kind": "transparent"
     },
     {
-      "address": "0x8ccC60f51751Fe9fA87d2Ec33633A95d22994385",
-      "txHash": "0x08282dc0da9bfeb3f9518330f9496ec9c5d6b68e29372fdb39c9a7d853fc7bec",
+      "address": "0xAbF69aE79a6C9d5A39375239470AFD37D2c897f9",
+      "txHash": "0xf821139c490aef088a9e13398f07052db89e3f9fa5430b9fae01865ac848fd2a",
       "kind": "transparent"
     }
   ],
   "impls": {
-    "874e6fa691937777285a5c569d8e2c34f57aec8c398627c7741966ebd9166590": {
-      "address": "0x4d660F0fB4E2849B048eD8e929399630C08eA70b",
-      "txHash": "0x83396fa7ec3a1b8f137da38d0c98df570eefe22d67e2ee1a0946aca8342fcc37",
+    "25f803ad66b79e85d912b28b5cea53b813e4bd3195ac522b0b0f62dfa89fa227": {
+      "address": "0x39f4ce4A0Ff46c48608b7aca5eA2AB4Ed4194442",
+      "txHash": "0x7250cae6acf890b487efe733073df5aa4798538d65cb29d57df859b0937dccaf",
       "layout": {
         "storage": [
           {
@@ -113,7 +113,7 @@
             "slot": "251",
             "type": "t_address",
             "contract": "Controller",
-            "src": "contracts/Controller.sol:48"
+            "src": "contracts/Controller.sol:50"
           },
           {
             "label": "_profileNFT",
@@ -121,7 +121,7 @@
             "slot": "252",
             "type": "t_address",
             "contract": "Controller",
-            "src": "contracts/Controller.sol:49"
+            "src": "contracts/Controller.sol:51"
           },
           {
             "label": "_contentNFT",
@@ -129,7 +129,7 @@
             "slot": "253",
             "type": "t_address",
             "contract": "Controller",
-            "src": "contracts/Controller.sol:50"
+            "src": "contracts/Controller.sol:52"
           },
           {
             "label": "_followNFTs",
@@ -137,7 +137,7 @@
             "slot": "254",
             "type": "t_mapping(t_uint256,t_address)",
             "contract": "Controller",
-            "src": "contracts/Controller.sol:51"
+            "src": "contracts/Controller.sol:53"
           },
           {
             "label": "_followNFTOwners",
@@ -145,39 +145,23 @@
             "slot": "255",
             "type": "t_mapping(t_address,t_uint256)",
             "contract": "Controller",
-            "src": "contracts/Controller.sol:52"
-          },
-          {
-            "label": "_indexedFollowees",
-            "offset": 0,
-            "slot": "256",
-            "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))",
-            "contract": "Controller",
-            "src": "contracts/Controller.sol:53"
-          },
-          {
-            "label": "_numberFollowees",
-            "offset": 0,
-            "slot": "257",
-            "type": "t_mapping(t_uint256,t_uint256)",
-            "contract": "Controller",
             "src": "contracts/Controller.sol:54"
           },
           {
             "label": "_indexedContents",
             "offset": 0,
-            "slot": "258",
+            "slot": "256",
             "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))",
             "contract": "Controller",
-            "src": "contracts/Controller.sol:55"
+            "src": "contracts/Controller.sol:58"
           },
           {
             "label": "_numberContents",
             "offset": 0,
-            "slot": "259",
+            "slot": "257",
             "type": "t_mapping(t_uint256,t_uint256)",
             "contract": "Controller",
-            "src": "contracts/Controller.sol:56"
+            "src": "contracts/Controller.sol:59"
           }
         ],
         "types": {
@@ -292,9 +276,9 @@
         }
       }
     },
-    "372f20b1e39f8f593122620334d4014748119d8f0a7c239faaa9f6e14cd48cfa": {
-      "address": "0x172D5c5C075bC911dB4668dA4516ed05A2e1493C",
-      "txHash": "0xe359078dee78b4a1d72a6a9ef57f0c626496392f2aa67b0ea16b7d34fc3a44b0",
+    "f97915d1861f86a7382173408adb4d67669270ecd9cf71f414a2eac73062cc15": {
+      "address": "0xeE532B83B50AB2DB2BE861f7474a61F26d5CdCb0",
+      "txHash": "0x755f5b77f0f07babc8ed290d46115b1fd286cb6eecfd124004929ff2f41149cc",
       "layout": {
         "storage": [
           {
@@ -526,9 +510,9 @@
         }
       }
     },
-    "a140372179775e7e25f71e9ac308551b6911cb774a09fd436ceb8464916101d7": {
-      "address": "0x2127fE8B4ED09135Cc258366CCbD92a9AD3e6BC2",
-      "txHash": "0x931a786675a5207a7bbef0d6d89961824bf95a2f27dcbe3cf6c35ea0de50af85",
+    "a688ba8e6fdcdedbcbf59fabb57a274263c7132dea6a8e0879343b5515346a56": {
+      "address": "0x0984A5E71658d57AAbfE050E001e1537dE35623f",
+      "txHash": "0xb1cc9c5a67a7b674b70d7557d2fcd3cdf0e2c7216969cc27a8ee66bf6564efae",
       "layout": {
         "storage": [
           {
@@ -784,9 +768,9 @@
         }
       }
     },
-    "94c54e67f0d3131ef22a94be90ec61140e23db749445056bc290c62eee74e4a2": {
-      "address": "0x9c3E1035c4998d1130f81E6F26996B4bCC240648",
-      "txHash": "0x1e68c72b0f1fd06d89266e1bd53b25ab0b06dead3e9ebe03ba54f4194377cc5c",
+    "e14cea06dbd8c55d2e1888e5652ffa16404da75758806c019961a4da1974a45d": {
+      "address": "0x77591641AbA918bd9F8a0B3c0bC5746D7021A715",
+      "txHash": "0x4008f6941c64ddea4bb2c7ae40f418943a9500f450d2e533d8cd2048e6b04446",
       "layout": {
         "storage": [
           {

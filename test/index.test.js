@@ -142,6 +142,14 @@ describe("Token contract", function () {
         const followNFT1 = await ethers.getContractAt("FollowNFT", await this.controller.getFollowNFT(profileIdOfOwner1)); 
         expect(await followNFT1.balanceOf(this.owner3.address)).to.equal(0);
         expect(await followNFT1.balanceOf(this.owner4.address)).to.equal(1);
+        expect(await followNFT1.tokenOfOwnerByIndex(this.owner4.address, 0)).to.equal(2);
+    });
+
+    it("followNFT transfer", async function () {
+        const profileIdOfOwner1 = await this.profileNFT.profileOf(this.owner1.address);
+        const followNFT1 = await ethers.getContractAt("FollowNFT", await this.controller.getFollowNFT(profileIdOfOwner1)); 
+        followNFT1.connect(this.owner4)['safeTransferFrom(address,address,uint256)'](this.owner4.address, this.owner5.address, 2);
+        expect(await followNFT1.tokenOfOwnerByIndex(this.owner5.address, 0)).to.equal(2);
     });
 
     it("setFollowNFTURI", async function () {
